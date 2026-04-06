@@ -38,25 +38,26 @@ const TYPE_EMOJI: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
-  const body: SubmitBody = await req.json();
-  const { member, type, startDate, endDate, backup, notes } = body;
+  try {
+    const body: SubmitBody = await req.json();
+    const { member, type, startDate, endDate, backup, notes } = body;
 
-  if (!member?.slackId || !type || !startDate || !backup?.slackId) {
-    return NextResponse.json(
-      { error: 'Missing required fields' },
-      { status: 400 }
-    );
-  }
+    if (!member?.slackId || !type || !startDate || !backup?.slackId) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
 
-  const token = process.env.SLACK_BOT_TOKEN;
-  const channel = process.env.SLACK_CHANNEL_ID || 'C06PR6VQECS';
+    const token = process.env.SLACK_BOT_TOKEN;
+    const channel = process.env.SLACK_CHANNEL_ID || 'C06PR6VQECS';
 
-  if (!token) {
-    return NextResponse.json(
-      { error: 'Slack is not configured. Add SLACK_BOT_TOKEN to env vars.' },
-      { status: 500 }
-    );
-  }
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Slack is not configured. Add SLACK_BOT_TOKEN to env vars.' },
+        { status: 500 }
+      );
+    }
 
   const isSingleDay = startDate === endDate;
   const dateRange = isSingleDay
@@ -196,5 +197,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    console.error('Submit API error:', error);
+    const message = error instanceof Error ? error.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

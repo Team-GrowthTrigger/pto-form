@@ -57,8 +57,14 @@ export default function PTOPage() {
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Submission failed');
+        let message = 'Submission failed';
+        try {
+          const data = await res.json();
+          message = data.error || message;
+        } catch {
+          message = `Server error (${res.status})`;
+        }
+        throw new Error(message);
       }
 
       setStatus('success');
