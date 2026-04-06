@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 
 const TEAM = [
   { name: 'Milton Carmona', slackId: 'U09L6U44VLK' },
@@ -21,8 +21,49 @@ const TYPES = [
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
-const inputClasses =
-  'w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-[#002fff]/50 focus:ring-1 focus:ring-[#002fff]/20 transition-all';
+// Film grain effect - exact dashboard implementation
+function useGrain() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    function resize() {
+      canvas!.width = window.innerWidth;
+      canvas!.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    let raf: number;
+    function draw() {
+      const w = canvas!.width;
+      const h = canvas!.height;
+      const img = ctx!.createImageData(w, h);
+      const d = img.data;
+      for (let i = 0; i < d.length; i += 4) {
+        const v = Math.random() * 255;
+        d[i] = v;
+        d[i + 1] = v;
+        d[i + 2] = v;
+        d[i + 3] = 255;
+      }
+      ctx!.putImageData(img, 0, 0);
+      raf = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  return canvasRef;
+}
 
 export default function PTOPage() {
   const [status, setStatus] = useState<Status>('idle');
@@ -34,6 +75,7 @@ export default function PTOPage() {
   const [notes, setNotes] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
+  const grainRef = useGrain();
   const today = new Date().toISOString().split('T')[0];
   const backupOptions = TEAM.filter((m) => m.name !== name);
 
@@ -104,72 +146,91 @@ export default function PTOPage() {
         : `${formatDisplay(startDate)} → ${formatDisplay(displayEnd)}`;
 
     return (
-      <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 relative">
-        <div className="text-center animate-fade-in relative z-10">
-          <div className="w-20 h-20 mx-auto mb-8 relative">
-            <svg
-              width="80"
-              height="80"
-              viewBox="0 0 80 80"
-              fill="none"
-              className="absolute inset-0"
-            >
-              <circle
-                className="animate-circle"
-                cx="40"
-                cy="40"
-                r="36"
-                stroke="#002fff"
-                strokeWidth="2"
-                fill="none"
-              />
-            </svg>
-            <svg
-              width="80"
-              height="80"
-              viewBox="0 0 80 80"
-              fill="none"
-              className="absolute inset-0"
-            >
-              <path
-                className="animate-check"
-                d="M26 40l10 10 18-20"
-                stroke="#002fff"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
-          </div>
+      <main className="min-h-screen bg-[#0a0a0a] relative">
+        <canvas ref={grainRef} id="grain" />
+        <div className="grid-bg" />
 
-          <h2 className="font-display text-3xl font-bold mb-2">
-            You&apos;re all set
-          </h2>
-          <p className="text-white/40 mb-8 text-sm">
-            The team has been notified on Slack
-          </p>
+        <div className="relative z-10 flex items-center justify-center min-h-screen p-6">
+          <div className="text-center anim">
+            {/* Animated ring - dashboard style */}
+            <div className="float mb-10">
+              <svg
+                width="180"
+                height="180"
+                viewBox="0 0 180 180"
+                className="mx-auto glow-pulse"
+              >
+                <circle
+                  cx="90" cy="90" r="70"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.04)"
+                  strokeWidth="4"
+                />
+                <circle
+                  cx="90" cy="90" r="70"
+                  fill="none"
+                  stroke="var(--blue)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  className="ring-fill"
+                  transform="rotate(-90 90 90)"
+                />
+                <path
+                  className="animate-check"
+                  d="M62 90l18 18 38-40"
+                  stroke="var(--blue)"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  fill="none"
+                />
+              </svg>
+            </div>
 
-          <div className="inline-flex flex-col gap-2 text-sm text-white/50 mb-10 bg-white/[0.025] border border-white/[0.06] rounded-xl px-6 py-4">
-            <span>
-              📅 <span className="text-white/70">{dateRange}</span>
-            </span>
-            <span>
-              📋 <span className="text-white/70">{typeLabel}</span>
-            </span>
-            <span>
-              🫡 Backup:{' '}
-              <span className="text-white/70">{backup}</span>
-            </span>
-          </div>
-
-          <div>
-            <button
-              onClick={reset}
-              className="text-[#002fff] hover:text-white transition-colors text-sm font-medium"
+            <h2
+              className="mb-2"
+              style={{
+                fontFamily: "'Satoshi', 'Inter', sans-serif",
+                fontSize: '2rem',
+                fontWeight: 900,
+                letterSpacing: '-0.03em',
+              }}
             >
-              Submit another request →
-            </button>
+              You&apos;re all set
+            </h2>
+            <p
+              className="mb-10"
+              style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.85rem' }}
+            >
+              The team has been notified on Slack
+            </p>
+
+            <div className="gt-card inline-block text-left mb-10" style={{ padding: '20px 28px' }}>
+              <div className="space-y-2" style={{ fontSize: '0.9rem' }}>
+                <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  📅 <span style={{ color: 'rgba(255,255,255,0.7)' }}>{dateRange}</span>
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  📋 <span style={{ color: 'rgba(255,255,255,0.7)' }}>{typeLabel}</span>
+                </div>
+                <div style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  🫡 Backup:{' '}
+                  <span style={{ color: 'rgba(255,255,255,0.7)' }}>{backup}</span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                onClick={reset}
+                className="text-sm font-medium transition-colors"
+                style={{ color: 'var(--blue)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'white')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--blue)')}
+              >
+                Submit another request →
+              </button>
+            </div>
           </div>
         </div>
       </main>
@@ -177,194 +238,208 @@ export default function PTOPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6 relative">
-      <div className="w-full max-w-lg relative z-10">
-        {/* Header */}
-        <div className="text-center mb-10 animate-fade-in">
-          <p className="text-[10px] font-semibold tracking-[0.25em] uppercase text-[#002fff] mb-4">
-            GrowthTrigger
-          </p>
-          <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight mb-2">
-            Time Off Request
+    <main className="min-h-screen bg-[#0a0a0a] relative">
+      {/* Background layers - exact dashboard match */}
+      <canvas ref={grainRef} id="grain" />
+      <div className="grid-bg" />
+
+      <div className="relative z-10" style={{ maxWidth: 560, margin: '0 auto', padding: '48px 24px 100px' }}>
+        {/* Hero section */}
+        <div className="relative" style={{ paddingBottom: 48 }}>
+          <div className="hero-glow" />
+
+          {/* GT Logo */}
+          <div className="logo-anim text-center" style={{ marginBottom: 40 }}>
+            <img
+              src="https://framerusercontent.com/images/RJR6OSQ36lUju0aWuXOenvAzf38.png"
+              alt="GrowthTrigger"
+              style={{ height: 32, display: 'inline-block' }}
+            />
+          </div>
+
+          {/* Page title - dashboard style */}
+          <h1
+            className="anim text-center"
+            style={{
+              fontFamily: "'Satoshi', 'Inter', sans-serif",
+              fontSize: '1.3rem',
+              fontWeight: 500,
+              letterSpacing: '0.15em',
+              textTransform: 'uppercase' as const,
+              color: 'rgba(255,255,255,0.4)',
+              marginBottom: 8,
+            }}
+          >
+            Time Off <span style={{ color: 'white', fontWeight: 700 }}>Request</span>
           </h1>
-          <p className="text-white/30 text-sm">
-            Take a break. You earned it.
-          </p>
+
+          {/* Status dot */}
+          <div className="anim anim-d1 flex items-center justify-center gap-2" style={{ marginTop: 16 }}>
+            <div
+              className="dot-glow"
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                background: 'var(--blue)',
+              }}
+            />
+            <span style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>
+              Take a break. You earned it.
+            </span>
+          </div>
         </div>
 
-        {/* Form */}
-        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 sm:p-8 shadow-[0_0_80px_rgba(0,47,255,0.03)] animate-slide-up">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Name */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">
-                Your Name
-              </label>
-              <select
-                required
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (backup === e.target.value) setBackup('');
-                }}
-                className={`${inputClasses} appearance-none cursor-pointer`}
-              >
-                <option value="" disabled>
-                  Select your name
-                </option>
-                {TEAM.map((m) => (
-                  <option key={m.slackId} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Request Type */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-3">
-                Request Type
-              </label>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {TYPES.map((t) => (
-                  <button
-                    key={t.value}
-                    type="button"
-                    onClick={() => setType(t.value)}
-                    className={`px-3 py-3 rounded-xl text-xs font-medium border transition-all duration-200 ${
-                      type === t.value
-                        ? 'bg-[#002fff]/10 border-[#002fff]/30 text-white shadow-[0_0_20px_rgba(0,47,255,0.1)]'
-                        : 'bg-white/[0.02] border-white/[0.06] text-white/35 hover:text-white/60 hover:border-white/[0.12]'
-                    }`}
-                  >
-                    <span className="block text-lg mb-1">{t.emoji}</span>
-                    {t.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-3">
+        {/* Form card */}
+        <div className="gt-card anim anim-d2">
+          <form onSubmit={handleSubmit}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* Name */}
               <div>
-                <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">
-                  Start Date
-                </label>
-                <input
-                  type="date"
+                <label className="gt-label">Your Name</label>
+                <select
                   required
-                  min={today}
-                  value={startDate}
+                  value={name}
                   onChange={(e) => {
-                    setStartDate(e.target.value);
-                    if (endDate && endDate < e.target.value) setEndDate('');
+                    setName(e.target.value);
+                    if (backup === e.target.value) setBackup('');
                   }}
-                  className={inputClasses}
-                />
+                  className="gt-input"
+                  style={{ appearance: 'none', cursor: 'pointer' }}
+                >
+                  <option value="" disabled>Select your name</option>
+                  {TEAM.map((m) => (
+                    <option key={m.slackId} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
               </div>
+
+              {/* Request Type */}
               <div>
-                <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">
-                  End Date{' '}
-                  <span className="text-white/15 normal-case tracking-normal">
-                    (optional)
-                  </span>
+                <label className="gt-label">Request Type</label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {TYPES.map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setType(t.value)}
+                      className={`type-pill ${type === t.value ? 'active' : ''}`}
+                    >
+                      <span style={{ display: 'block', fontSize: '1.1rem', marginBottom: 4 }}>
+                        {t.emoji}
+                      </span>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Dates */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label className="gt-label">Start Date</label>
+                  <input
+                    type="date"
+                    required
+                    min={today}
+                    value={startDate}
+                    onChange={(e) => {
+                      setStartDate(e.target.value);
+                      if (endDate && endDate < e.target.value) setEndDate('');
+                    }}
+                    className="gt-input"
+                  />
+                </div>
+                <div>
+                  <label className="gt-label">
+                    End Date <span className="gt-label-sub">(optional)</span>
+                  </label>
+                  <input
+                    type="date"
+                    min={startDate || today}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="gt-input"
+                  />
+                </div>
+              </div>
+
+              {/* Backup */}
+              <div>
+                <label className="gt-label">Who&apos;s Got Your Back?</label>
+                <select
+                  required
+                  value={backup}
+                  onChange={(e) => setBackup(e.target.value)}
+                  className="gt-input"
+                  style={{ appearance: 'none', cursor: 'pointer' }}
+                >
+                  <option value="" disabled>Select backup person</option>
+                  {backupOptions.map((m) => (
+                    <option key={m.slackId} value={m.name}>{m.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="gt-label">
+                  Notes <span className="gt-label-sub">(optional)</span>
                 </label>
-                <input
-                  type="date"
-                  min={startDate || today}
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className={inputClasses}
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={3}
+                  placeholder="Anything the team should know..."
+                  className="gt-input"
+                  style={{ resize: 'none' }}
                 />
               </div>
-            </div>
 
-            {/* Backup */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">
-                Who&apos;s Got Your Back?
-              </label>
-              <select
-                required
-                value={backup}
-                onChange={(e) => setBackup(e.target.value)}
-                className={`${inputClasses} appearance-none cursor-pointer`}
-              >
-                <option value="" disabled>
-                  Select backup person
-                </option>
-                {backupOptions.map((m) => (
-                  <option key={m.slackId} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Notes */}
-            <div>
-              <label className="block text-[11px] font-medium uppercase tracking-widest text-white/40 mb-2">
-                Notes{' '}
-                <span className="text-white/15 normal-case tracking-normal">
-                  (optional)
-                </span>
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="Anything the team should know..."
-                className={`${inputClasses} resize-none placeholder:text-white/15`}
-              />
-            </div>
-
-            {/* Error */}
-            {errorMsg && (
-              <div className="text-red-400/80 text-sm text-center bg-red-400/[0.06] border border-red-400/10 rounded-xl px-4 py-3">
-                {errorMsg}
-              </div>
-            )}
-
-            {/* Submit */}
-            <button
-              type="submit"
-              disabled={status === 'submitting'}
-              className="w-full py-3.5 rounded-xl bg-[#002fff] text-white text-sm font-semibold transition-all duration-300 hover:shadow-[0_8px_30px_rgba(0,47,255,0.35)] hover:bg-[#0035ff] active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
-            >
-              {status === 'submitting' ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-                    />
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                'Submit Request'
+              {/* Error */}
+              {errorMsg && (
+                <div
+                  style={{
+                    fontSize: '0.8rem',
+                    color: '#ff6b6b',
+                    textAlign: 'center',
+                    background: 'rgba(255,107,107,0.06)',
+                    border: '1px solid rgba(255,107,107,0.1)',
+                    borderRadius: 10,
+                    padding: '12px 16px',
+                  }}
+                >
+                  {errorMsg}
+                </div>
               )}
-            </button>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={status === 'submitting'}
+                className="gt-btn"
+              >
+                {status === 'submitting' ? (
+                  <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                    <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    Submitting...
+                  </span>
+                ) : (
+                  'Submit Request'
+                )}
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* Footer */}
-        <p className="text-center text-white/10 text-xs mt-8 animate-slide-up-delay">
-          Powered by GrowthTrigger
-        </p>
+        {/* Footer - exact dashboard style */}
+        <div className="gt-footer anim anim-d4" style={{ marginTop: 48 }}>
+          <p>GrowthTrigger Time Off Portal · HRardo Bot</p>
+          <p>Powered by GrowthTrigger</p>
+        </div>
       </div>
     </main>
   );

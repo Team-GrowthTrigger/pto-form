@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#002fff"/>
+      <stop offset="100%" stop-color="#0055ff"/>
+    </linearGradient>
+    <filter id="innerShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Solid blue background -->
+  <rect width="512" height="512" rx="100" ry="100" fill="url(#bgGrad)"/>
+
+  <!-- Robot head - rounded square, white -->
+  <rect x="80" y="100" width="352" height="310" rx="72" ry="72" fill="white" filter="url(#innerShadow)"/>
+
+  <!-- Visor / eye band - dark strip across the face -->
+  <rect x="80" y="185" width="352" height="90" rx="0" fill="#1d1d1f"/>
+  <!-- Rounded ends of visor that match head curve -->
+  <rect x="80" y="185" width="352" height="90" rx="8" fill="#1d1d1f"/>
+
+  <!-- Left eye - glowing circle inside visor -->
+  <circle cx="192" cy="230" r="28" fill="#002fff"/>
+  <circle cx="192" cy="230" r="20" fill="#4d8aff"/>
+  <circle cx="192" cy="230" r="12" fill="white"/>
+
+  <!-- Right eye - glowing circle inside visor -->
+  <circle cx="320" cy="230" r="28" fill="#002fff"/>
+  <circle cx="320" cy="230" r="20" fill="#4d8aff"/>
+  <circle cx="320" cy="230" r="12" fill="white"/>
+
+  <!-- MUSTACHE - big, bold, brown/dark, classic thick handlebar -->
+  <!-- Using simple overlapping ellipses and arcs for a chunky sticker-like mustache -->
+  <!-- Center block -->
+  <ellipse cx="256" cy="330" rx="40" ry="18" fill="#3b2314"/>
+  <!-- Left wing -->
+  <ellipse cx="185" cy="325" rx="52" ry="16" fill="#3b2314" transform="rotate(-12, 185, 325)"/>
+  <!-- Right wing -->
+  <ellipse cx="327" cy="325" rx="52" ry="16" fill="#3b2314" transform="rotate(12, 327, 325)"/>
+  <!-- Left tip curl - upward -->
+  <ellipse cx="138" cy="312" rx="18" ry="14" fill="#3b2314" transform="rotate(-25, 138, 312)"/>
+  <!-- Right tip curl - upward -->
+  <ellipse cx="374" cy="312" rx="18" ry="14" fill="#3b2314" transform="rotate(25, 374, 312)"/>
+
+  <!-- Antenna - centered on top -->
+  <rect x="248" y="52" width="16" height="52" rx="8" fill="white"/>
+  <circle cx="256" cy="46" r="18" fill="white" filter="url(#innerShadow)"/>
+  <circle cx="256" cy="46" r="10" fill="#002fff"/>
+
+  <!-- Small mouth - happy arc below mustache -->
+  <path d="M230,365 Q256,382 282,365" fill="none" stroke="#1d1d1f" stroke-width="4" stroke-linecap="round" opacity="0.2"/>
+
+  <!-- Cheek dots for friendliness -->
+  <circle cx="140" cy="340" r="14" fill="#ff6b6b" opacity="0.2"/>
+  <circle cx="372" cy="340" r="14" fill="#ff6b6b" opacity="0.2"/>
+</svg>

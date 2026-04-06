@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  --blue: #002fff;
+  --blue-rgb: 0, 47, 255;
+  --w: 255, 255, 255;
+  --black: #0a0a0a;
   color-scheme: dark;
 }
 
@@ -10,77 +14,54 @@
   ::selection {
     background: rgba(0, 47, 255, 0.3);
   }
+}
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(
-      rgba(255, 255, 255, 0.025) 1px,
-      transparent 1px
-    );
-    background-size: 32px 32px;
-    pointer-events: none;
-  }
+/* ---- GRID BACKGROUND (exact dashboard match) ---- */
+.grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 80px 80px, 80px 80px, 80px 80px;
+}
 
-  body::after {
-    content: '';
-    position: fixed;
-    top: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 400px;
-    background: radial-gradient(
-      ellipse,
-      rgba(0, 47, 255, 0.06) 0%,
-      transparent 70%
-    );
-    pointer-events: none;
+/* ---- FILM GRAIN CANVAS ---- */
+#grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+/* ---- HERO GLOW ---- */
+.hero-glow {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(0, 47, 255, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 768px) {
+  .hero-glow {
+    width: 400px;
   }
 }
 
-@layer utilities {
-  .animate-fade-in {
-    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .animate-slide-up {
-    animation: slideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    opacity: 0;
-  }
-
-  .animate-slide-up-delay {
-    animation: slideUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
-    opacity: 0;
-  }
-
-  .animate-check {
-    animation: checkDraw 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
-    stroke-dasharray: 40;
-    stroke-dashoffset: 40;
-  }
-
-  .animate-circle {
-    animation: circleDraw 0.6s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-    stroke-dasharray: 126;
-    stroke-dashoffset: 126;
-  }
-}
-
-@keyframes fadeIn {
+/* ---- ANIMATIONS (exact dashboard timing) ---- */
+@keyframes fadeUp {
   from {
     opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(40px);
   }
   to {
     opacity: 1;
@@ -88,27 +69,247 @@
   }
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 20px rgba(0, 47, 255, 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 50px rgba(0, 47, 255, 0.7)) drop-shadow(0 0 80px rgba(0, 47, 255, 0.3));
+  }
+}
+
+@keyframes ringFill {
+  from { stroke-dashoffset: 440; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes dotGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 47, 255, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(0, 47, 255, 0.9), 0 0 40px rgba(0, 47, 255, 0.3); }
+}
+
 @keyframes checkDraw {
-  to {
-    stroke-dashoffset: 0;
-  }
+  to { stroke-dashoffset: 0; }
 }
 
-@keyframes circleDraw {
-  to {
-    stroke-dashoffset: 0;
-  }
+.anim {
+  opacity: 0;
+  animation: fadeUp 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
+.anim-d1 { animation-delay: 0.1s; }
+.anim-d2 { animation-delay: 0.2s; }
+.anim-d3 { animation-delay: 0.3s; }
+.anim-d4 { animation-delay: 0.4s; }
+
+.logo-anim {
+  opacity: 0;
+  animation: fadeIn 1s ease forwards 0.2s;
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
+.float {
+  animation: float 6s ease-in-out infinite;
 }
 
+.glow-pulse {
+  animation: glowPulse 4s ease-in-out infinite;
+}
+
+.ring-fill {
+  stroke-dasharray: 440;
+  stroke-dashoffset: 440;
+  animation: ringFill 2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+}
+
+.dot-glow {
+  animation: dotGlow 3s ease-in-out infinite;
+}
+
+.animate-check {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: checkDraw 0.6s cubic-bezier(0.65, 0, 0.35, 1) 0.5s forwards;
+}
+
+/* ---- CARD (exact dashboard match) ---- */
+.gt-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s,
+    border-color 0.4s;
+}
+
+.gt-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  opacity: 0.4;
+  transition: opacity 0.3s;
+}
+
+.gt-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(0, 47, 255, 0.1), 0 0 1px rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.gt-card:hover::before {
+  opacity: 1;
+}
+
+/* ---- FORM ELEMENTS ---- */
+.gt-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 14px 16px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 500;
+  font-family: 'Inter', -apple-system, sans-serif;
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+}
+
+.gt-input:focus {
+  border-color: rgba(0, 47, 255, 0.3);
+  box-shadow: 0 0 0 3px rgba(0, 47, 255, 0.06);
+  background: rgba(0, 47, 255, 0.03);
+}
+
+.gt-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.gt-label {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  margin-bottom: 10px;
+}
+
+.gt-label-sub {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* ---- SECTION TITLE (exact dashboard match) ---- */
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: 'Satoshi', 'Inter', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: white;
+}
+
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ---- TYPE PILL (matching dashboard badges) ---- */
+.type-pill {
+  padding: 10px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.type-pill:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.type-pill.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: white;
+}
+
+/* ---- SUBMIT BUTTON ---- */
+.gt-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--blue);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gt-btn:hover {
+  box-shadow: 0 12px 40px rgba(0, 47, 255, 0.35);
+  transform: translateY(-2px);
+}
+
+.gt-btn:active {
+  transform: translateY(0);
+}
+
+.gt-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ---- FOOTER (exact dashboard match) ---- */
+.gt-footer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.8rem;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
