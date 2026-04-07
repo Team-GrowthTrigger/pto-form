@@ -77,10 +77,21 @@ export default function PTOPage() {
 
   const grainRef = useGrain();
   const today = new Date().toISOString().split('T')[0];
+  // Minimum date: 21 days from now (3-week advance notice), except sick leave
+  const minDate = new Date(Date.now() + 21 * 86400000).toISOString().split('T')[0];
+  const enforceAdvanceNotice = type !== 'sick';
+  const effectiveMinDate = enforceAdvanceNotice ? minDate : today;
   const backupOptions = TEAM.filter((m) => m.name !== name);
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    if (enforceAdvanceNotice && startDate < minDate) {
+      setErrorMsg('Time off must be requested at least 3 weeks (21 days) in advance. For emergencies, contact Milton or Verneri directly.');
+      setStatus('error');
+      return;
+    }
+
     setStatus('submitting');
     setErrorMsg('');
 
@@ -341,7 +352,7 @@ export default function PTOPage() {
                   <input
                     type="date"
                     required
-                    min={today}
+                    min={effectiveMinDate}
                     value={startDate}
                     onChange={(e) => {
                       setStartDate(e.target.value);
